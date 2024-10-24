@@ -10,47 +10,30 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Sprite _muteImg;
     private bool isMuted;
     [SerializeField] private List<Button> _musicButtons;
-    [SerializeField] private GameObject _endgamePanel;
-    public bool stopGame = false;
-    public static GameManager Instance;
 
-    private void Awake()
-    {
-        if (Instance == null)
-        {
-            Instance = this;
-        }
-        else
-        {
-            Destroy(this);
-        }
-    }
     private void Start()
     {
+        isMuted = PlayerPrefs.GetInt("isMuted", 0) == 1;
         foreach (Button btn in _musicButtons)
         {
-            btn.image.sprite = _musicImg;
-            btn.onClick.AddListener(() => OnMusicButtonClick(btn));
+            btn.image.sprite = isMuted ? _muteImg : _musicImg;
+            btn.onClick.AddListener(OnMusicButtonClick);
         }
     }
-    public void OnMusicButtonClick(Button clickedButton)
+    public void OnMusicButtonClick()
     {
         isMuted = !isMuted;
-        if (isMuted)
+        PlayerPrefs.SetInt("isMuted", isMuted ? 1 : 0);
+        PlayerPrefs.Save();
+        foreach (Button btn in _musicButtons)
         {
-            clickedButton.image.sprite = _muteImg;
-        }
-        else
-        {
-            clickedButton.image.sprite = _musicImg;
+            btn.image.sprite = isMuted ? _muteImg : _musicImg;
         }
     }
 
     public void PlayGame()
     {
         Time.timeScale = 1;
-        if (_endgamePanel != null)
-            _endgamePanel.SetActive(false);
         SceneManager.LoadScene("GameScene");
     }
 
@@ -61,31 +44,16 @@ public class GameManager : MonoBehaviour
 
     public void PauseGame()
     {
-        stopGame = true;
+        Time.timeScale = 0;
     }
 
     public void EndGame()
     {
         Time.timeScale = 0;
-        _endgamePanel.SetActive(true);
     }
 
-  
-    //private IEnumerator CountdownBeforeResume(float countdownTime)
-    //{
-    //    _timeCountDownPanel.SetActive(true);
-    //    Time.timeScale = 1;
-    //    while (countdownTime > 0)
-    //    {
-    //        timeCountDown.text = Mathf.Ceil(countdownTime).ToString();
-    //        yield return new WaitForSeconds(1);
-    //        countdownTime--;
-    //    }
-    //    stopGame = false;
-    //    SpawBlock.Instance.SetStaticRigid(false);
-    //    _timeCountDownPanel.SetActive(false);
-    //    timeCountDown.text = "3";
-    //}
-
-
+    public void ResumeGame()
+    {
+        Time.timeScale = 1;
+    }
 }
